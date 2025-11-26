@@ -26,8 +26,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - |
-      docker build -t nginx --build-arg DJANGO_SECRETS -f ./nginx/Dockerfile . &
+      - docker build -t nginx --build-arg DJANGO_SECRETS -f ./nginx/Dockerfile . &
       docker build -t uwsgi --build-arg DJANGO_SECRETS -f ./learningmachines/searcher/Dockerfile . &
       docker build -t redis --build-arg DJANGO_SECRETS -f ./redis/Dockerfile . &
       docker build -t worker --build-arg DJANGO_SECRETS -f ./learningmachines/learningmachines/Dockerfile . &
