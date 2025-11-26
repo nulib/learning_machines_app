@@ -8,10 +8,11 @@ phases:
 
   install:
     runtime-versions:
-      docker: 18  
+      docker: 20  
 
   pre_build:
     commands:
+      - export DOCKER_BUILDKIT=1
       - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 049879149392.dkr.ecr.us-east-2.amazonaws.com
@@ -25,29 +26,28 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build  -t nginx  --build-arg DJANGO_SECRETS  -f  ./nginx/Dockerfile .
-      - docker build  -t uwsgi  --build-arg DJANGO_SECRETS  -f  ./learningmachines/searcher/Dockerfile .
-      - docker build  -t redis  --build-arg DJANGO_SECRETS  -f  ./redis/Dockerfile .
-      - docker build  -t worker --build-arg DJANGO_SECRETS  -f ./learningmachines/learningmachines/Dockerfile .
+      - |
+      docker build -t nginx --build-arg DJANGO_SECRETS -f ./nginx/Dockerfile . &
+      docker build -t uwsgi --build-arg DJANGO_SECRETS -f ./learningmachines/searcher/Dockerfile . &
+      docker build -t redis --build-arg DJANGO_SECRETS -f ./redis/Dockerfile . &
+      docker build -t worker --build-arg DJANGO_SECRETS -f ./learningmachines/learningmachines/Dockerfile . &
+      wait
       
-  post_build:
-    commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker images...
-      - docker tag worker:latest  $REPOSITORY_URI_WORKER:$IMAGE_TAG
-      - docker push $REPOSITORY_URI_WORKER:$IMAGE_TAG
-      - docker tag nginx:latest $REPOSITORY_URI_NGINX:$IMAGE_TAG
-      - docker push $REPOSITORY_URI_NGINX:$IMAGE_TAG
-      - docker tag redis:latest $REPOSITORY_URI_REDIS:$IMAGE_TAG
-      - docker push $REPOSITORY_URI_REDIS:$IMAGE_TAG
-      - docker tag uwsgi:latest $REPOSITORY_URI_UWSGI:$IMAGE_TAG
-      - docker push $REPOSITORY_URI_UWSGI:$IMAGE_TAG
-      - echo Writing image definitions file...
-      - printf '[{"name":"worker","imageUri":"%s"}]' $REPOSITORY_URI_WORKER:$IMAGE_TAG > imagedefinitions.json
-      - printf '[{"name":"nginx","imageUri":"%s"}]' $REPOSITORY_URI_NGINX:$IMAGE_TAG > imagedefinitions.json
-      - printf '[{"name":"uwsgi","imageUri":"%s"}]' $REPOSITORY_URI_UWSGI:$IMAGE_TAG > imagedefinitions.json 
-      - printf '[{"name":"redis","imageUri":"%s"}]' $REPOSITORY_URI_REDIS:$IMAGE_TAG > imagedefinitions.json
-      - cat imagedefinitions.json
+post_build:
+  commands:
+    - echo Build completed on `date`
+    - echo Pushing the Docker images...
+    - docker tag worker:latest $REPOSITORY_URI_WORKER:$IMAGE_TAG
+    - docker push $REPOSITORY_URI_WORKER:$IMAGE_TAG
+    - docker tag nginx:latest $REPOSITORY_URI_NGINX:$IMAGE_TAG
+    - docker push $REPOSITORY_URI_NGINX:$IMAGE_TAG
+    - docker tag redis:latest $REPOSITORY_URI_REDIS:$IMAGE_TAG
+    - docker push $REPOSITORY_URI_REDIS:$IMAGE_TAG
+    - docker tag uwsgi:latest $REPOSITORY_URI_UWSGI:$IMAGE_TAG
+    - docker push $REPOSITORY_URI_UWSGI:$IMAGE_TAG
+    - echo Writing image definitions file...
+    - printf '[{"name":"worker","imageUri":"%s"},{"name":"nginx","imageUri":"%s"},{"name":"uwsgi","imageUri":"%s"},{"name":"redis","imageUri":"%s"}]' $REPOSITORY_URI_WORKER:$IMAGE_TAG $REPOSITORY_URI_NGINX:$IMAGE_TAG $REPOSITORY_URI_UWSGI:$IMAGE_TAG $REPOSITORY_URI_REDIS:$IMAGE_TAG > imagedefinitions.json
+    - cat imagedefinitions.json
 artifacts:
   files:
     - imagedefinitions.json
