@@ -1,34 +1,33 @@
-version: "3.8"
 services:
   redis:
-     build: 
-       context : .
-       dockerfile : ./redis/Dockerfile
-     ports:
-        - 6379:6379
-     volumes:
-       - ./config/redis.conf:/redis.conf
-     command: [ "redis-server", "/redis.conf" ]
+    build: 
+      context: .
+      dockerfile: ./redis/Dockerfile
+    ports:
+      - 6379:6379
+    volumes:
+      - ./config/redis.conf:/redis.conf
+    command: ["redis-server", "/redis.conf"]
+      
   worker:
     build: 
-      context : .
-      dockerfile : ./learningmachines/learningmachines/Dockerfile
+      context: .
+      dockerfile: ./learningmachines/learningmachines/Dockerfile
     depends_on:
       - redis  
+      
   uwsgi:
     build:
       context: .
-      dockerfile : ./learningmachines/searcher/Dockerfile
-    expose:
-      - 8001      
+      dockerfile: ./learningmachines/searcher/Dockerfile
+    # Services can communicate on any port by default
+      
   nginx:
     restart: always
     build: 
-      context : .
-      dockerfile : ./nginx/Dockerfile
+      context: .
+      dockerfile: ./nginx/Dockerfile
     ports:
       - 80:80
-    links:
-      - uwsgi:uwsgi
     depends_on:
       - uwsgi
