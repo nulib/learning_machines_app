@@ -13,7 +13,7 @@ requests-aws4auth==1.2.3
 
 # --- Scientific/ML (PINNED - Risky) ---
 scikit-learn==0.24.0
-umap==0.1.1  # not removed yet <-- REMOVED (Use umap-learn)
+# umap==0.1.1  <-- REMOVED (Use umap-learn)
 umap-learn==0.5.3
 nltk==3.4.5
 gensim==4.0.1
