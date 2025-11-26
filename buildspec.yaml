@@ -5,8 +5,8 @@ env:
     
 phases:
   install:
-    runtime-versions:
-      docker: 20  
+    commands:
+      - echo "Using default docker version"
   pre_build:
     commands:
       - export DOCKER_BUILDKIT=1
